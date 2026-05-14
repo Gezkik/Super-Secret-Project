@@ -2,87 +2,196 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Engine</title>
     <style>
-        :root { --bg: #0f0f0f; --side: #1a1a1a; --text: #e0e0e0; --accent: #00ff88; }
-        body { margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); font-family: sans-serif; overflow: hidden; }
-        #sidebar { width: 220px; background: var(--side); padding: 15px; display: flex; flex-direction: column; border-right: 1px solid #333; }
-        .tab { background: #2a2a2a; border: none; color: white; padding: 10px; margin-bottom: 8px; cursor: pointer; border-radius: 4px; text-align: left; width: 100%; }
-        .tab:hover { background: var(--accent); color: black; }
-        #main { flex-grow: 1; display: flex; flex-direction: column; }
-        #nav { padding: 10px; background: #111; display: flex; gap: 10px; }
-        input { flex-grow: 1; background: #222; border: 1px solid #444; color: white; padding: 8px; border-radius: 4px; }
-        iframe { flex-grow: 1; border: none; background: white; }
-        .btn-small { font-size: 10px; padding: 5px; background: #444; color: #ccc; border: none; cursor: pointer; margin-top: 5px; }
+        /* CSS: Opera GX Style Neon Aesthetics */
+        :root {
+            --bg: #050505;
+            --side: #0f0f0f;
+            --text: #ffffff;
+            --accent: #ff0055; /* Opera GX Red - change to any color! */
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar / Dock */
+        #sidebar {
+            width: 70px;
+            background-color: var(--side);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            border-right: 2px solid var(--accent);
+            box-shadow: 5px 0 15px rgba(255, 0, 85, 0.2);
+            z-index: 10;
+        }
+
+        .dock-icon {
+            width: 35px;
+            height: 35px;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+            filter: drop-shadow(0 0 2px var(--accent));
+        }
+
+        .dock-icon:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 10px var(--accent));
+        }
+
+        /* Main View */
+        #main-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #top-nav {
+            padding: 10px 20px;
+            background: var(--side);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        #url-input {
+            flex-grow: 1;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        #url-input:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* The Browser Window */
+        #browser-view {
+            flex-grow: 1;
+            border: none;
+            background: white;
+        }
+
+        /* Bottom Controls */
+        .settings-area {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
-<div id="sidebar">
-    <h3 id="logo">My Engine</h3>
-    <div id="tab-list">
-        <button class="tab" onclick="load('https://www.bing.com')">Search</button>
+    <!-- SIDEBAR DOCK -->
+    <div id="sidebar">
+        <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=bing.com&sz=64" title="Search" onclick="launch('https://www.bing.com')">
+        <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=discord.com&sz=64" title="Discord" onclick="launch('https://discord.com')">
+        <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=spotify.com&sz=64" title="Spotify" onclick="launch('https://open.spotify.com')">
+        
+        <div id="custom-tabs"></div>
+
+        <div class="settings-area">
+            <button onclick="addTab()" style="background:none; border:1px solid #444; color:white; border-radius:50%; width:35px; height:35px; cursor:pointer;">+</button>
+            <input type="color" onchange="document.documentElement.style.setProperty('--accent', this.value)" style="width:30px; height:30px; border:none; background:none; cursor:pointer;">
+            <button onclick="panic()" title="Panic Button" style="background:none; border:none; font-size:20px; cursor:pointer;">🛡️</button>
+        </div>
     </div>
-    <button class="btn-small" onclick="addTab()">+ Add Tab</button>
-    <div style="margin-top: auto;">
-        <p>Theme:</p>
-        <input type="color" onchange="document.documentElement.style.setProperty('--accent', this.value)">
-        <button class="btn-small" onclick="cloak()">Panic Mode (Cloak)</button>
+
+    <!-- MAIN BROWSER AREA -->
+    <div id="main-container">
+        <div id="top-nav">
+            <input type="text" id="url-input" placeholder="Search or enter URL (e.g. https://google.com)">
+            <button class="btn" onclick="handleInput()">Go</button>
+        </div>
+        <iframe id="browser-view" src="about:blank"></iframe>
     </div>
-</div>
 
-<div id="main">
-    <div id="nav">
-        <input type="text" id="url" placeholder="Search or type URL...">
-        <button onclick="handleSearch()" class="tab" style="width: auto; margin:0;">Go</button>
-    </div>
-    <iframe id="view" src="https://www.bing.com"></iframe>
-</div>
+    <script>
+        const frame = document.getElementById('browser-view');
+        const input = document.getElementById('url-input');
 
-<script>
-    const view = document.getElementById('view');
-    const tabList = document.getElementById('tab-list');
+        // YOUR ENGINE LINK (Connected to your forked repo)
+        const engineBase = "https://gezkik.github.io/Ultraviolet-Static/service/";
 
-    // Load saved tabs from your computer's memory
-    let savedTabs = JSON.parse(localStorage.getItem('myTabs')) || [];
-    savedTabs.forEach(tab => createTabElement(tab.name, tab.url));
-
-    function load(url) { view.src = url; }
-
-    function handleSearch() {
-        const val = document.getElementById('url').value;
-        if(val.startsWith('http')) load(val);
-        else load('https://www.bing.com/search?q=' + encodeURIComponent(val));
-    }
-
-    function addTab() {
-        const name = prompt("Name:");
-        const url = prompt("URL (https://):");
-        if(name && url) {
-            createTabElement(name, url);
-            savedTabs.push({name, url});
-            localStorage.setItem('myTabs', JSON.stringify(savedTabs));
+        function launch(url) {
+            // Ultraviolet requires the URL to be scrambled (Base64)
+            // This bypasses the school's "Website Blocked" screen
+            const encodedUrl = btoa(url); 
+            frame.src = engineBase + encodedUrl;
         }
-    }
 
-    function createTabElement(name, url) {
-        const b = document.createElement('button');
-        b.className = 'tab';
-        b.innerText = name;
-        b.onclick = () => load(url);
-        tabList.appendChild(b);
-    }
+        function handleInput() {
+            let val = input.value.trim();
+            if (!val) return;
 
-    function cloak() {
-        document.title = "Google Drive";
-        // Changes the tab icon to Google Drive
-        let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-        link.type = 'image/x-icon';
-        link.rel = 'shortcut icon';
-        link.href = 'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png';
-        document.getElementsByTagName('head')[0].appendChild(link);
-        alert("Tab Cloaked! It now looks like Google Drive to others.");
-    }
-</script>
+            if (val.startsWith('http')) {
+                launch(val);
+            } else {
+                // If it's not a URL, search Bing instead
+                launch('https://www.bing.com/search?q=' + encodeURIComponent(val));
+            }
+        }
+
+        // Add custom tabs from the user
+        function addTab() {
+            const url = prompt("Enter Website URL (https://...):");
+            if (url) {
+                const domain = new URL(url).hostname;
+                const container = document.getElementById('custom-tabs');
+                const img = document.createElement('img');
+                img.className = 'dock-icon';
+                img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                img.onclick = () => launch(url);
+                container.appendChild(img);
+            }
+        }
+
+        // Panic Mode: Disguises the tab immediately
+        function panic() {
+            document.title = "Google Drive";
+            let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+            link.type = 'image/x-icon';
+            link.rel = 'shortcut icon';
+            link.href = 'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png';
+            document.getElementsByTagName('head')[0].appendChild(link);
+            frame.src = "about:blank";
+            alert("Panic Mode Active: Tab Disguised.");
+        }
+
+        // Allow pressing "Enter" to search
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                handleInput();
+            }
+        });
+
+        // Load a default page on start
+        launch('https://www.bing.com');
+    </script>
 </body>
 </html>
