@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Dashboard</title>
+    <style>
+        :root { --bg: #0f0f0f; --side: #1a1a1a; --text: #e0e0e0; --accent: #00ff88; }
+        body { margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); font-family: sans-serif; overflow: hidden; }
+        #sidebar { width: 220px; background: var(--side); padding: 15px; display: flex; flex-direction: column; border-right: 1px solid #333; }
+        .tab { background: #2a2a2a; border: none; color: white; padding: 10px; margin-bottom: 8px; cursor: pointer; border-radius: 4px; text-align: left; width: 100%; }
+        .tab:hover { background: var(--accent); color: black; }
+        #main { flex-grow: 1; display: flex; flex-direction: column; }
+        #nav { padding: 10px; background: #111; display: flex; gap: 10px; }
+        input { flex-grow: 1; background: #222; border: 1px solid #444; color: white; padding: 8px; border-radius: 4px; }
+        iframe { flex-grow: 1; border: none; background: white; }
+        .btn-small { font-size: 10px; padding: 5px; background: #444; color: #ccc; border: none; cursor: pointer; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h3 id="logo">My Engine</h3>
+    <div id="tab-list">
+        <button class="tab" onclick="load('https://www.bing.com')">Search</button>
+    </div>
+    <button class="btn-small" onclick="addTab()">+ Add Tab</button>
+    <div style="margin-top: auto;">
+        <p>Theme:</p>
+        <input type="color" onchange="document.documentElement.style.setProperty('--accent', this.value)">
+        <button class="btn-small" onclick="cloak()">Panic Mode (Cloak)</button>
+    </div>
+</div>
+
+<div id="main">
+    <div id="nav">
+        <input type="text" id="url" placeholder="Search or type URL...">
+        <button onclick="handleSearch()" class="tab" style="width: auto; margin:0;">Go</button>
+    </div>
+    <iframe id="view" src="https://www.bing.com"></iframe>
+</div>
+
+<script>
+    const view = document.getElementById('view');
+    const tabList = document.getElementById('tab-list');
+
+    // Load saved tabs from your computer's memory
+    let savedTabs = JSON.parse(localStorage.getItem('myTabs')) || [];
+    savedTabs.forEach(tab => createTabElement(tab.name, tab.url));
+
+    function load(url) { view.src = url; }
+
+    function handleSearch() {
+        const val = document.getElementById('url').value;
+        if(val.startsWith('http')) load(val);
+        else load('https://www.bing.com/search?q=' + encodeURIComponent(val));
+    }
+
+    function addTab() {
+        const name = prompt("Name:");
+        const url = prompt("URL (https://):");
+        if(name && url) {
+            createTabElement(name, url);
+            savedTabs.push({name, url});
+            localStorage.setItem('myTabs', JSON.stringify(savedTabs));
+        }
+    }
+
+    function createTabElement(name, url) {
+        const b = document.createElement('button');
+        b.className = 'tab';
+        b.innerText = name;
+        b.onclick = () => load(url);
+        tabList.appendChild(b);
+    }
+
+    function cloak() {
+        document.title = "Google Drive";
+        // Changes the tab icon to Google Drive
+        let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+        link.type = 'image/x-icon';
+        link.rel = 'shortcut icon';
+        link.href = 'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png';
+        document.getElementsByTagName('head')[0].appendChild(link);
+        alert("Tab Cloaked! It now looks like Google Drive to others.");
+    }
+</script>
+</body>
+</html>
