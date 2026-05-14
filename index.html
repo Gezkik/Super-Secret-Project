@@ -4,15 +4,23 @@
     <meta charset="UTF-8">
     <title>My Engine</title>
     <style>
-        :root { --bg: #050505; --side: #0f0f0f; --text: #ffffff; --accent: #00ff88; }
+        :root { --bg: #050505; --side: #0f0f0f; --text: #ffffff; --accent: #ff0055; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; overflow: hidden; }
-        #sidebar { width: 70px; background: var(--side); display: flex; flex-direction: column; align-items: center; padding: 20px 0; border-right: 2px solid var(--accent); }
+        
+        /* Sidebar Dock */
+        #sidebar { width: 70px; background: var(--side); display: flex; flex-direction: column; align-items: center; padding: 20px 0; border-right: 2px solid var(--accent); z-index: 10; }
         .dock-icon { width: 35px; height: 35px; margin-bottom: 25px; cursor: pointer; transition: 0.3s; filter: drop-shadow(0 0 2px var(--accent)); }
+        .dock-icon:hover { transform: scale(1.2); filter: drop-shadow(0 0 10px var(--accent)); }
+
+        /* Main View */
         #main-container { flex-grow: 1; display: flex; flex-direction: column; }
-        #top-nav { padding: 10px; background: var(--side); display: flex; gap: 10px; }
-        #url-input { flex-grow: 1; background: #1a1a1a; border: 1px solid #333; color: white; padding: 10px; border-radius: 5px; }
-        iframe { flex-grow: 1; border: none; background: white; }
-        .btn { background: var(--accent); border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        #top-nav { padding: 10px; background: var(--side); display: flex; gap: 10px; align-items: center; }
+        #url-input { flex-grow: 1; background: #1a1a1a; border: 1px solid #333; color: white; padding: 10px; border-radius: 20px; outline: none; }
+        
+        /* The Browser Window */
+        #browser-view { flex-grow: 1; border: none; background: white; width: 100%; height: 100%; }
+        
+        .btn { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -20,49 +28,58 @@
     <div id="sidebar">
         <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=bing.com&sz=64" onclick="launch('https://www.bing.com')">
         <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=discord.com&sz=64" onclick="launch('https://discord.com')">
+        <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=reddit.com&sz=64" onclick="launch('https://reddit.com')">
+        
         <div style="margin-top: auto;">
-            <button onclick="panic()" style="background:none; border:none; cursor:pointer; font-size: 20px;">🛡️</button>
+            <input type="color" onchange="document.documentElement.style.setProperty('--accent', this.value)" style="width:30px; height:30px; border:none; background:none; cursor:pointer; margin-bottom:15px;">
+            <button onclick="panic()" style="background:none; border:none; font-size:20px; cursor:pointer;">🛡️</button>
         </div>
     </div>
 
     <div id="main-container">
         <div id="top-nav">
-            <input type="text" id="url-input" placeholder="Enter full URL like https://discord.com">
+            <input type="text" id="url-input" placeholder="Enter URL (e.g., discord.com)">
             <button class="btn" onclick="handleInput()">Go</button>
         </div>
-        <iframe id="browser-view"></iframe>
+        <!-- We use an 'about:blank' start to prevent immediate blocks -->
+        <iframe id="browser-view" src="about:blank"></iframe>
     </div>
 
     <script>
         const frame = document.getElementById('browser-view');
         const input = document.getElementById('url-input');
 
-       // Updated to point into the 'public' folder where your files actually are
-const engineBase = "https://gezkik.github.io/Ultraviolet-Static/public/uv/service#";
+        // This is a 'Public Bridge' - it's much more reliable for beginners
+        // It basically tells the website: 'I am a normal request, let me through'
+        const proxyPrefix = "https://api.codetabs.com/v1/proxy?quest=";
 
         function launch(url) {
-            // Ultraviolet (UV) typically uses a specific encoding.
-            // For the basic static version, we just append the URL after the # or /
-            console.log("Launching through proxy:", url);
-            
-            // We use __uv_voyager as a common path, or just the direct URL encoded
-            const encoded = btoa(url).replace(/\//g, '_').replace(/\+/g, '-').replace(/=/g, '');
-            
-            // TRY THIS DIRECT PATH FIRST:
-            frame.src = "https://gezkik.github.io/Ultraviolet-Static/uv/service#" + encoded;
+            console.log("Navigating to:", url);
+            // We use the proxy prefix to hide the destination from the school filter
+            frame.src = proxyPrefix + encodeURIComponent(url);
         }
 
         function handleInput() {
             let val = input.value.trim();
-            if (!val.startsWith('http')) val = 'https://' + val;
+            if (!val) return;
+            
+            // Clean up the URL
+            if (!val.startsWith('http')) {
+                val = 'https://' + val;
+            }
+            
             launch(val);
         }
 
         function panic() {
+            // Instantly teleports you to Google Classroom
             window.location.href = "https://classroom.google.com";
         }
 
         input.addEventListener("keypress", (e) => { if(e.key === "Enter") handleInput(); });
+
+        // Initial Page
+        launch('https://www.bing.com');
     </script>
 </body>
 </html>
