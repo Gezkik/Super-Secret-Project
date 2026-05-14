@@ -10,6 +10,7 @@
             --side: #0f0f0f;
             --text: #ffffff;
             --accent: #ff0055;
+            --icon-color: #ffffff;
         }
 
         body, html {
@@ -21,35 +22,68 @@
             overflow: hidden;
         }
 
+        /* Sidebar Fixes */
         #sidebar {
             width: 70px;
+            min-width: 70px;
             background-color: var(--side);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px 0;
             border-right: 1px solid #222;
+            height: 100vh;
+            z-index: 100;
         }
 
         .dock-icon {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             margin-bottom: 25px;
             cursor: pointer;
             transition: 0.3s;
-            opacity: 0.7;
+            filter: drop-shadow(0 0 5px var(--accent));
         }
 
         .dock-icon:hover {
-            opacity: 1;
-            transform: scale(1.2);
-            filter: drop-shadow(0 0 8px var(--accent));
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 15px var(--accent));
         }
 
+        /* Browser Switcher Menu */
+        #browser-menu {
+            position: absolute;
+            left: 80px;
+            top: 20px;
+            background: var(--side);
+            border: 1px solid var(--accent);
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 200;
+        }
+
+        #browser-menu button {
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #333;
+            padding: 5px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        #browser-menu button:hover {
+            background: var(--accent);
+        }
+
+        /* Main View Container */
         #main-container {
-            flex-grow: 1;
+            flex: 1;
             display: flex;
             flex-direction: column;
+            height: 100vh;
         }
 
         #top-nav {
@@ -72,7 +106,7 @@
 
         .btn {
             background: var(--accent);
-            color: white;
+            color: var(--icon-color);
             border: none;
             padding: 8px 20px;
             border-radius: 4px;
@@ -81,33 +115,47 @@
         }
 
         #browser-view {
-            flex-grow: 1;
+            flex: 1;
             border: none;
             background: white;
             width: 100%;
         }
 
-        .panic-btn {
+        .controls {
             margin-top: auto;
-            cursor: pointer;
-            font-size: 20px;
-            opacity: 0.5;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
         }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=google.com&sz=64" onclick="launch('https://www.google.com')">
+        <!-- Search/Switcher Icon -->
+        <img class="dock-icon" src="https://img.icons8.com/ios-filled/50/ffffff/search.png" id="search-trigger" onclick="toggleMenu()" title="Switch Browser">
+        
+        <div id="browser-menu">
+            <button onclick="launch('https://www.google.com')">Google</button>
+            <button onclick="launch('https://www.bing.com')">Bing</button>
+            <button onclick="launch('https://duckduckgo.com')">DuckDuckGo</button>
+        </div>
+
         <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=discord.com&sz=64" onclick="launch('https://discord.com')">
-        <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=reddit.com&sz=64" onclick="launch('https://www.reddit.com')">
-        <div class="panic-btn" onclick="panic()">🏠</div>
+        <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=reddit.com&sz=64" onclick="launch('https://reddit.com')">
+        <img class="dock-icon" src="https://www.google.com/s2/favicons?domain=spotify.com&sz=64" onclick="launch('https://open.spotify.com')">
+        
+        <div class="controls">
+            <input type="color" id="colorPicker" onchange="updateTheme(this.value)" style="width:30px; height:30px; border:none; background:none; cursor:pointer;">
+            <div style="cursor:pointer; opacity:0.5;" onclick="panic()">🏠</div>
+        </div>
     </div>
 
     <div id="main-container">
         <div id="top-nav">
-            <input type="text" id="url-input" placeholder="Enter URL (e.g. discord.com)">
-            <button class="btn" onclick="handleInput()">Go</button>
+            <input type="text" id="url-input" placeholder="Enter URL...">
+            <button class="btn" id="goBtn" onclick="handleInput()">Go</button>
         </div>
         <iframe id="browser-view" src="about:blank"></iframe>
     </div>
@@ -115,15 +163,18 @@
     <script>
         const frame = document.getElementById('browser-view');
         const input = document.getElementById('url-input');
+        const menu = document.getElementById('browser-menu');
 
-        // YOUR REPLIT URL
+        // REPLIT ENGINE URL
         const engineURL = "https://dc14316e-8fdc-4cbc-8179-5f781cb2a282-00-36ss2kfp7vp8j.kirk.replit.dev/";
 
+        function toggleMenu() {
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
         function launch(target) {
-            // This builds the final link: Engine + Target Website
-            // Example: https://replit-link.com/?url=https://discord.com
+            menu.style.display = 'none';
             const finalURL = engineURL + "?url=" + encodeURIComponent(target);
-            console.log("Routing to:", finalURL);
             frame.src = finalURL;
         }
 
@@ -134,13 +185,29 @@
             launch(val);
         }
 
-        function panic() {
-            window.location.href = "https://classroom.google.com";
+        function updateTheme(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            
+            // LUMINANCE CHECK: If color is light, make text black
+            const r = parseInt(color.substr(1,2), 16);
+            const g = parseInt(color.substr(3,2), 16);
+            const b = parseInt(color.substr(5,2), 16);
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            
+            const textColor = brightness > 125 ? '#000000' : '#ffffff';
+            document.documentElement.style.setProperty('--icon-color', textColor);
+            document.getElementById('goBtn').style.color = textColor;
+            
+            // Update search icon color
+            const searchIcon = document.getElementById('search-trigger');
+            searchIcon.src = brightness > 125 
+                ? "https://img.icons8.com/ios-filled/50/000000/search.png" 
+                : "https://img.icons8.com/ios-filled/50/ffffff/search.png";
         }
 
+        function panic() { window.location.href = "https://classroom.google.com"; }
         input.addEventListener("keypress", (e) => { if (e.key === "Enter") handleInput(); });
 
-        // Default start page
         window.onload = () => launch('https://www.google.com');
     </script>
 </body>
